@@ -1,0 +1,72 @@
+<html>
+
+<head>
+    <style type="text/css">
+        *,
+        *:before,
+        *:after {
+            -webkit-box-sizing: inherit;
+            box-sizing: inherit;
+        }
+
+        html {
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            font-size: 62.5%;
+        }
+
+        .btn,
+        a.btn,
+        button.btn {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.5;
+            position: relative;
+            display: inline-block;
+            padding: 1rem 4rem;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+            text-align: center;
+            vertical-align: middle;
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            color: #ffffff;
+            border: none;
+            border-radius: 0.5rem;
+            width: 20rem;
+            margin: 2rem 1rem;
+        }
+
+        .btn--orange,
+        a.btn--orange {
+            color: #fff;
+            background-color: #eb6100;
+        }
+
+        .btn--orange:hover,
+        a.btn--orange:hover {
+            color: #fff;
+            background: #f56500;
+        }
+    </style>
+
+</head>
+
+<body>
+    <button id="button" class="btn btn--orange">実行</button>
+    <script>
+        var button_elm = document.getElementById("button");
+        button_elm.onclick = function () {
+            button_elm.innerHTML = "実行中...";
+            button_elm.disabled = true;
+            window.location.href = "{{ uri }}";
+        };
+    </script>
+</body>
+
+</html>

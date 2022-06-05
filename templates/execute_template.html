@@ -1,0 +1,57 @@
+<html>
+
+<head>
+    <style type="text/css">
+        *,
+        *:before,
+        *:after {
+            -webkit-box-sizing: inherit;
+            box-sizing: inherit;
+        }
+
+        html {
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            font-size: 62.5%;
+        }
+
+        .btn,
+        a.btn,
+        button.btn {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.5;
+            position: relative;
+            display: inline-block;
+            padding: 1rem 4rem;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+            text-align: center;
+            vertical-align: middle;
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            color: #ffffff;
+            border: none;
+            border-radius: 0.5rem;
+            width: 20rem;
+            margin: 2rem 1rem;
+        }
+
+        .btn--gray,
+        a.btn--gray {
+            color: rgb(255, 255, 255);
+            background-color: #0f1ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn btn--gray" disabled>{{ text }}</button>
+</body>
+
+</html>
