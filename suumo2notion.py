@@ -54,7 +54,9 @@ def property2dict(elem):
     td = tds[4]
     tmp['所在地'] = td.contents[-1].split('\t')[-1]
 
-    tmp['不動産'] = elem.find("a", class_="js-noCassetteLink").contents[0]
+    # tmp['不動産'] = elem.find("a", class_="js-noCassetteLink").contents[0]
+    tmp['不動産'] = elem.find(
+        "div", class_='detailnote-box-item').find("div").text
     try:
         tmp['間取り図'] = elem.find("li", id=re.compile(
             'js-madorizuImg*')).find('img').attrs['rel']

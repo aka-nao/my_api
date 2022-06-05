@@ -1,0 +1,18 @@
+<html>
+
+<head>
+    <script type="text/javascript">
+        function hoge(e) {
+            location.href = 'http://127.0.0.1:5000/make_recipe?url=' + e.elements['url'].value;
+        }
+    </script>
+</head>
+
+<body>
+    <form action="" method="" name="form1">
+        <input type="text" name="url" />
+        <input type="button" value="Jump" onclick="hoge(this.form)" />
+    </form>
+</body>
+
+</html>

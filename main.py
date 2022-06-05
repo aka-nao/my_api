@@ -40,11 +40,26 @@ def shoppinglist_execute():
     return render_template('execute_template.html', text='実行完了')
 
 
-@app.route('/make_recipe', methods=['POST'])
+# @app.route('/make_recipe', methods=['POST'])
+# def make_recipe():
+#     url = request.json['url']
+#     make_recipe_page(url)
+#     res = {'result': 'Success!'}
+#     return json.dumps(res)
+
+
+@app.route("/make_recipe", methods=["GET"])
 def make_recipe():
-    url = request.json['url']
-    make_recipe_page(url)
-    res = {'result': 'Success!'}
+    try:
+        req = request.args
+        url = req.get("url")
+    except:
+        res = {'result': 'parameter Error'}
+    if url:
+        make_recipe_page(url)
+        res = {'result': 'Success!'}
+    else:
+        return render_template('make_menu_home.html')
     return json.dumps(res)
 
 

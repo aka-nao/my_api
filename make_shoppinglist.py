@@ -31,6 +31,11 @@ def get_menu_list():
     menu_list = []
     for page in page_list:
         menu_dict = {}
+        name = page['properties']['Name']['title']
+        if len(name) == 0:
+            menu_dict['name'] = None
+        else:
+            menu_dict['name'] = name[0]['text']['content']
         menu_dict['page_id'] = page['id']
         menu_dict['title'] = page['properties']['メニュー名']['rollup']['array'][0]['title'][0]['text']['content']
         menu_dict['itg_list'] = [x['name'] for x in page['properties']
@@ -64,8 +69,13 @@ def make_shoppinglist():
         print(f'Error:{url} {res.text}')
     else:
         print(f'{url} : OK!')
-        post_data = {"properties": {"買い出し済": {"checkbox": True}}}
         for menu in menu_list:
+            if menu['name'] is None:
+                name = menu['title']
+            else:
+                name = menu['name']
+            post_data = {"properties": {"買い出し済": {"checkbox": True},
+                                        "Name": {'title': [{'text': {'content': name}}]}}}
             url = f'https://api.notion.com/v1/pages/{menu["page_id"]}'
             res = requests.patch(url, json=post_data, headers=headers)
             if res.status_code != 200:

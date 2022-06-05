@@ -237,6 +237,57 @@ def scraping_macaroni(url):
     return res
 
 
+url = 'https://park.ajinomoto.co.jp/recipe/card/709911/'
+
+
+def scraping_ajinomoto(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    res = {'url': url}
+    res['title'] = soup.select_one('.titleText').text.replace(' ', '')
+    res['cooking_time'] = soup.select_one('.inTime').select_one('span').text
+    res['serving_num'] = del_waste(soup.select_one('.bigTitle_quantity').text)
+    res['image'] = soup.select_one('.inImage').select_one('img')['src']
+    try:
+        tmp = [e.select('span') for e in soup.select_one(
+            '.nutrientListWrapper').select('div') if len(e.select('span')) == 2]
+        res['calorie'] = [e[1].text for e in tmp if 'エネルギー' in e[0].text][0]+'/1人分'
+    except:
+        pass
+
+    table = soup.select_one('.recipeMaterialList').select_one('dl')
+    ingredients = {}
+    for t, d in zip(table.select('dt'), table.select('dd')):
+        name = t.text.replace('\r', '').replace('\n', '').replace(' ', '')
+        amount = d.text.replace('\r', '').replace('\n', '').replace(' ', '')
+        ingredients[name] = amount
+    res['ingredients'] = ingredients
+    return res
+
+
+url = 'https://www.fundokin.co.jp/recipe/misoshiru365/misoshiru089.php'
+
+
+def scraping_fundokin(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    res = {'url': url}
+    res['title'] = soup.select_one('.misoshirutxt').select_one('h2').text
+    res['serving_num'] = del_waste(soup.select_one(
+        '.cookleft').select_one('h3').text.split('（')[-1])
+    res['image'] = '/'.join(url.split('/')[:-1])+'/' + \
+        soup.select_one('.misoshiruimg').select_one('img')['src']
+
+    table = soup.select_one('.cookleft').select_one('ul')
+    ingredients = {}
+    for li in [e.text.split('\u3000') for e in table.select('li')]:
+        name = li[0]
+        amount = li[1]
+        ingredients[name] = amount
+    res['ingredients'] = ingredients
+    return res
+
+
 def get_recipe(url):
     netloc = urlparse(url).netloc
 
@@ -252,6 +303,10 @@ def get_recipe(url):
         recipe = scraping_delishkitchen(url)
     elif netloc == 'macaro-ni.jp':
         recipe = scraping_macaroni(url)
+    elif netloc == 'park.ajinomoto.co.jp':
+        recipe = scraping_ajinomoto(url)
+    elif netloc == 'www.fundokin.co.jp':
+        recipe = scraping_fundokin(url)
     else:
         print('not found')
         return {}
