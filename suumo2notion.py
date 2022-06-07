@@ -84,6 +84,38 @@ def pickup_content(value):
         return value
 
 
+def make_prop(row):
+    prop_type = {"ステータス": "multi_select", "name": "title", "url": "url", "駅徒歩": "number", "面積": "number", "管理費": "number", "敷金": "number", "築年数": "number", "総戸数": "number", "礼金": "number", "家賃": "number", "SUUMO物件コード": "number", "駅": "select", "契約期間": "select", "取引態様": "select", "所在地": "select", "損保": "select", "次回更新日": "select", "向き": "select",
+                 "構造": "select", "不動産": "select", "種別": "select", "間取り": "select", "間取り図": "files", "入居": "rich_text", "間取り詳細": "rich_text", "取り扱い店舗物件コード": "rich_text", "築年月": "rich_text", "駐車場": "rich_text", "ほか諸費用": "rich_text", "バルコニー面積": "rich_text", "階建": "rich_text", "備考": "rich_text", "仲介手数料": "rich_text", "条件": "rich_text", "保証会社": "rich_text", "情報更新日": "date"}
+    properties = {}
+    col_list = row.keys()
+    for key, value in prop_type.items():
+        if key not in col_list:
+            continue
+        if value == 'select':
+            properties[key] = {"select": {"name": row[key]}}
+        elif value == 'multi_select':
+            properties[key] = {"multi_select": [{"name": row[key]}]}
+        elif value == 'number':
+            properties[key] = {"number": row[key]}
+        elif value == 'rich_text':
+            properties[key] = {"rich_text": [
+                {'text': {'content': row[key]}}]}
+        elif value == 'url':
+            properties[key] = {"url": row[key]}
+        elif value == 'date':
+            properties[key] = {"date": {"start": row[key], "end": None}}
+        elif value == 'files':
+            properties[key] = {
+                "files": [{"external": {"url": row[key]}, "name":row[key]}]}
+        elif value == 'title':
+            properties[key] = {'title': [{'text': {'content': row[key]}}]}
+        else:
+            print(f'{key}:{value} is not defined.')
+
+    return properties
+
+
 def suumo_update():
     url = 'https://suumo.jp/jj/chintai/ichiran/FR301FC005/?ar=030&bs=040&smk=&po1=25&po2=99&shkr1=03&shkr2=03&shkr3=03&shkr4=03&rn=0185&ek=018523100&ra=013&cb=0.0&ct=9999999&md=04&md=05&md=06&md=07&ts=1&ts=2&et=10&mb=40&mt=9999999&cn=15&tc=0400101&fw2='
     pc = 100  # 同時表示件数（最大100件）
@@ -171,57 +203,32 @@ def suumo_update():
                 '\n', '').replace('\r', '').replace('\t', '') for td in td_list]
             th_list = [th.get_text() for th in th_list]
             for i in range(len(th_list)):
-                if th_list[i] == '周辺情報' or th_list[i] == '携帯用QRコード':
+                if th_list[i] == '周辺情報' or th_list[i] == '携帯用QRコード' or td_list[i] == '-':
                     continue
                 prop[th_list[i]] = td_list[i]
+            prop.update(row[~row.isna()].to_dict())
 
-            new_prop_list.append(prop)
+            for k, v in prop.items():
+                if k == '所在地':
+                    prop['所在地'] = prop['所在地'].replace('東京都立川市', '')
+                if k == '総戸数':
+                    prop['総戸数'] = int(prop['総戸数'].replace('戸', ''))
+                if k == 'SUUMO物件コード':
+                    prop['SUUMO物件コード'] = int(prop['SUUMO物件コード'])
+                if k == '情報更新日':
+                    prop['情報更新日'] = prop['情報更新日'].replace('/', '-')
+
+            prop['ステータス'] = '新規'
+            properties = make_prop(prop)
+
+            url = 'https://api.notion.com/v1/pages'
+            post_data = {'parent': {'database_id': database_id},
+                         'properties': properties}
+            res = requests.post(url, json=post_data, headers=headers)
+            if res.status_code != 200:
+                print(f'Error:{row["url"]}  {res.text}')
+
             j += 1
             print(j, row['name'])
-        add_df = pd.DataFrame(new_prop_list)
-        new_df = new_df.merge(add_df)
-        new_df = new_df.replace('-', np.nan)
-        new_df['所在地'] = new_df['所在地'].str.replace('東京都立川市', '')
-        new_df['総戸数'] = new_df['総戸数'].str.replace('戸', '').astype('float')
-        new_df['SUUMO物件コード'] = new_df['SUUMO物件コード'].astype('int64')
-        new_df['情報更新日'] = new_df['情報更新日'].str.replace('/', '-')
-
-        prop_type = {"ステータス": "multi_select", "name": "title", "url": "url", "駅徒歩": "number", "面積": "number", "管理費": "number", "敷金": "number", "築年数": "number", "総戸数": "number", "礼金": "number", "家賃": "number", "SUUMO物件コード": "number", "駅": "select", "契約期間": "select", "取引態様": "select", "所在地": "select", "損保": "select", "次回更新日": "select", "向き": "select",
-                     "構造": "select", "不動産": "select", "種別": "select", "間取り": "select", "間取り図": "files", "入居": "rich_text", "間取り詳細": "rich_text", "取り扱い店舗物件コード": "rich_text", "築年月": "rich_text", "駐車場": "rich_text", "ほか諸費用": "rich_text", "バルコニー面積": "rich_text", "階建": "rich_text", "備考": "rich_text", "仲介手数料": "rich_text", "条件": "rich_text", "保証会社": "rich_text", "情報更新日": "date"}
-
-    new_df['ステータス'] = '新規'
-    for index, row in new_df.iterrows():
-        col_list = row[~row.isna()].index
-        properties = {}
-        for key, value in prop_type.items():
-            if key not in col_list:
-                continue
-            if value == 'select':
-                properties[key] = {"select": {"name": row[key]}}
-            elif value == 'multi_select':
-                properties[key] = {"multi_select": [{"name": row[key]}]}
-            elif value == 'number':
-                properties[key] = {"number": row[key]}
-            elif value == 'rich_text':
-                properties[key] = {"rich_text": [
-                    {'text': {'content': row[key]}}]}
-            elif value == 'url':
-                properties[key] = {"url": row[key]}
-            elif value == 'date':
-                properties[key] = {"date": {"start": row[key], "end": None}}
-            elif value == 'files':
-                properties[key] = {
-                    "files": [{"external": {"url": row[key]}, "name":row[key]}]}
-            elif value == 'title':
-                properties[key] = {'title': [{'text': {'content': row[key]}}]}
-            else:
-                print(f'{key}:{value} is not defined.')
-
-        url = 'https://api.notion.com/v1/pages'
-        post_data = {'parent': {'database_id': database_id},
-                     'properties': properties}
-        res = requests.post(url, json=post_data, headers=headers)
-        if res.status_code != 200:
-            print(f'Error:{row["url"]}  {res.text}')
 
     return 0
