@@ -1,6 +1,7 @@
 # %%
 import requests
 import datetime
+import re
 from get_key import *
 
 database_id = 'f5721cc0463f4586b7d2aa4a69577113'
@@ -12,8 +13,18 @@ headers = {
     'Authorization': 'Bearer ' + notion_api_key
 }
 
+rakuten_url = 'https://sm.rakuten.co.jp/search?keyword='
 
 # %%
+
+
+def del_waste(text):
+    text = re.sub("(\(|（).*(\)|）)", "", text)
+    pattern = '\(|\)|（|）|【|】|\s'
+    text = re.sub(pattern, '', text)
+    return text
+
+
 def get_menu_list():
     url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
@@ -54,8 +65,9 @@ def make_shoppinglist():
     for menu in menu_list:
         itg_list = []
         for itg in menu['itg_list']:
+            itg_url = rakuten_url+del_waste(itg.split(':')[0])
             itg_list.append({'object': 'block', 'type': 'to_do', 'to_do': {
-                            'rich_text': [{'type': 'text', 'text': {'content': itg}}]}})
+                            'rich_text': [{'type': 'text', 'text': {'content': itg, 'link': {'type': 'url', 'url': itg_url}}}]}})
         children.append({'object': 'block', 'type': 'bulleted_list_item', 'bulleted_list_item': {'rich_text': [
                         {'type': 'text', 'text': {'content': menu['title']}}], "children": itg_list}})
 
